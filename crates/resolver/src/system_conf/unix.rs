@@ -11,6 +11,7 @@
 //!  the host system. It will read from the default location on each operating
 //!  system, e.g. most Unixes have this written to `/etc/resolv.conf`
 
+use std::env::consts::OS;
 use std::fs::File;
 use std::io;
 use std::io::Read;
@@ -27,7 +28,12 @@ use crate::proto::rr::Name;
 const DEFAULT_PORT: u16 = 53;
 
 pub fn read_system_conf() -> io::Result<(ResolverConfig, ResolverOpts)> {
-    read_resolv_conf("/etc/resolv.conf")
+    if OS == "ios" {
+        let config_str = "nameserver  1.1.1.1";
+        parse_resolv_conf(&config_str.as_bytes())
+    } else {
+        read_resolv_conf("/etc/resolv.conf")
+    }
 }
 
 fn read_resolv_conf<P: AsRef<Path>>(path: P) -> io::Result<(ResolverConfig, ResolverOpts)> {
